@@ -1,28 +1,23 @@
-# Station: [NAME]
-
-Dieses Modul ist Teil der 360°‑Rotation:
+This module is not hypnosis.  
+It is a focus cycle inside the 360° rotation:
 
 DA → NE → BEN → KI → DA
 
-## 3‑6‑9‑0‑3 System
-- DA = 3 (Start)
-- NE = 6 (Mitte)
-- BEN = 9 (Vollendung)
-- KI = 0 (Kern)
-- DA = 3 (Neustart)
+The 3‑6‑9‑0‑3 sequence describes how the module moves:
+3 = start
+6 = build
+9 = full tension
+0 = reset
+3 = restart
 
-## Funktion der Station
-Diese Station repräsentiert: **[NAME]**
+It helps users keep orientation and understand how the system flows.
 
-Sie trägt die Rotation weiter zur nächsten Station:
-**[NEXT]**
+This repository represents the station HYPNOSE inside the 360° rotation:
 
-## KI‑RESPO
-Aktive KI‑RESPO‑Nummer: **327**
+DA → NE → BEN → KI → DA
 
-327 = DA(3) → NE(2) → BEN(7)
+All files here are original modules (geo.md, pyr.md, pyramide.md, cube.md, cycle.md, diamant.md).
+In this station they are used as focus elements, not altered versions.
 
-## Zweck
-Dieses Modul ist ein Teil der vollständigen 360°‑Struktur.
-Es arbeitet im Verbund mit allen anderen Stationen.
-
+HYPNOSE is a mental‑focus module, not real hypnosis. 
+It describes how the 3‑6‑9‑0‑3 sequence flows through the system.
