@@ -2,162 +2,313 @@
 <html lang="de">
 <head>
 <meta charset="UTF-8">
-<title>ROOT • ATOM‑SONNE‑DIAMANT SYSTEM</title>
-
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NANO · WÜRFEL · CONTROLLER</title>
 <style>
-body {
-  background:#000;
-  color:#eee;
-  font-family:Consolas, monospace;
-  padding:20px;
-}
-h1,h2 {
-  color:#00e0ff;
-  text-shadow:0 0 10px #00e0ff;
-}
-.block {
-  border:1px solid #00e0ff;
-  padding:15px;
-  margin:20px 0;
-  border-radius:8px;
-  background:#111;
-}
-pre {
-  white-space:pre-wrap;
-}
+  body{background:#05070e;color:#c8d8e8;font-family:Consolas,monospace;
+       margin:0;padding:16px;min-height:100vh;
+       display:grid;grid-template-columns:1fr 280px;gap:12px}
+  #stage{background:#0a0d18;border:1px solid #1a2030;border-radius:10px;
+         position:relative;overflow:hidden}
+  canvas{display:block;width:100%;height:100%}
+  #panel{background:#0a0d18;border:1px solid #1a2030;border-radius:10px;
+         padding:14px;display:flex;flex-direction:column;gap:10px;
+         font-size:11px;overflow-y:auto}
+  h2{font-size:11px;letter-spacing:2px;color:#5a6a80;margin:0;
+     border-bottom:1px solid #1a2030;padding-bottom:5px}
+  .zeile{display:flex;justify-content:space-between;gap:8px;
+         padding:3px 0;border-bottom:1px solid #0e1420}
+  .zeile .k{color:#5a6a80}
+  .zeile .v{color:#ffd700;font-weight:bold}
+  .achse{display:flex;gap:6px;align-items:center;padding:4px 0}
+  .achse .name{width:50px;color:#5a6a80;font-size:10px}
+  .achse .balken{flex:1;height:5px;background:#0f1420;border-radius:3px;
+                 overflow:hidden}
+  .achse .balken div{height:100%;transition:width 0.4s}
+  .knopf{background:#0f1420;border:1px solid #1a2030;color:#8aa8a0;
+         padding:5px 12px;border-radius:100px;font-family:inherit;
+         font-size:10px;cursor:pointer;letter-spacing:1px}
+  .knopf:hover{border-color:#ffd700;color:#ffd700}
+  .knopf.aktiv{border-color:#ffd700;color:#ffd700;background:rgba(255,215,0,0.06)}
+  @media (max-width:700px){body{grid-template-columns:1fr}}
 </style>
 </head>
-
 <body>
 
-<h1>ROOT • ATOM × SONNE × DIAMANT</h1>
-
-<!-- ATOM ROOM -->
-<div class="block">
-<h2>ATOM‑ROOM (atom.room)</h2>
-<pre>
-           ◈ (Proton)
-        /     |      \
-      △       ▣       ↺
-   (Neutrino) (Neutron) (Elektron)
-
-           ◉ (Punkt)
-             ◎ (Achse)
-</pre>
+<div id="stage">
+  <canvas id="cv"></canvas>
 </div>
 
-<!-- 3 SUN SYSTEM -->
-<div class="block">
-<h2>3‑SONNEN‑SYSTEM (sys.html)</h2>
-<pre>
-SONNE 1 (Diamant)
-→ Harmonie
-→ Stabilität
-→ Klarheit
+<div id="panel">
+  <h2>◈ NANO · WÜRFEL</h2>
+  <div class="zeile"><span class="k">Modus</span><span class="v" id="modus">RUHE</span></div>
+  <div class="zeile"><span class="k">Aktiv</span><span class="v" id="aktiv">—</span></div>
+  <div class="zeile"><span class="k">Q</span><span class="v" id="quadrant">—</span></div>
 
-SONNE 2 (Atomkern)
-→ Balance
-→ Neutralisierung
-→ Struktur
+  <h2>◈ ACHSEN</h2>
+  <div class="achse"><span class="name">X·HYPE</span><div class="balken"><div id="ax" style="width:50%;background:#a78bfa"></div></div></div>
+  <div class="achse"><span class="name">Y·CALC</span><div class="balken"><div id="ay" style="width:50%;background:#4dd0e1"></div></div></div>
+  <div class="achse"><span class="name">Z·iki2li</span><div class="balken"><div id="az" style="width:50%;background:#f5a342"></div></div></div>
 
-SONNE 3 (MANA-Licht)
-→ Freude
-→ Rückführung
-→ Energie
+  <h2>◈ POL</h2>
+  <div class="zeile"><span class="k">HÄ</span><span class="v" id="vh">—</span></div>
+  <div class="zeile"><span class="k">ÄH</span><span class="v" id="va">—</span></div>
 
-         ◈1
-       /  |  \
-     △   ▣   ↺
-
-         ◈2
-       /  |  \
-     △   ▣   ↺
-
-         ◈3
-       /  |  \
-     △   ▣   ↺
-</pre>
+  <h2>◈ STATION</h2>
+  <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px">
+    <button class="knopf" data-st="AH">AH</button>
+    <button class="knopf" data-st="HA">HA</button>
+    <button class="knopf" data-st="HÄ">HÄ</button>
+    <button class="knopf" data-st="ÄH">ÄH</button>
+    <button class="knopf" data-st="NC">NC</button>
+  </div>
 </div>
 
-<!-- MANA LIGHT -->
-<div class="block">
-<h2>MANA‑LICHT (tem.html)</h2>
-<pre>
-◉ öffnet → Harmonie
-◎ schiebt → Freude
-△ dreht → Klarheit
-▣ zieht → Gelassenheit
-↺ entlädt → Balance
-◆ schlägt → Stabilität
-</pre>
-</div>
+<script>
+(function(){
+'use strict';
 
-<!-- HYPNOSE -->
-<div class="block">
-<h2>HYPNOSE‑STATION (HYP.html)</h2>
-<pre>
-Rotation: DA → NE → BEN → KI → DA
-Sequenz: 3 → 6 → 9 → 0 → 3
+const cv = document.getElementById('cv');
+const ctx = cv.getContext('2d');
+let W, H;
 
-Ziel:
-• Disharmonie erkennen
-• Harmonie erhöhen
-• Freude stabilisieren
-• Gelassenheit zurückführen
-• Halluzination minimieren
-• Problemstufen senken
-</pre>
-</div>
+function resize(){
+  const st = document.getElementById('stage');
+  const r = st.getBoundingClientRect();
+  W = cv.width = r.width;
+  H = cv.height = r.height;
+}
+resize();
+window.addEventListener('resize', resize);
 
-<!-- CANVAS -->
-<div class="block">
-<h2>CANVAS / ATOM (NO.html)</h2>
-<pre>
-◉ Punkt
-◎ Achse
-△ Form
-▣ Raum
-↺ Zyklus
-◈ Diamant
-</pre>
-</div>
+// ─── Zustand ────────────────────────────────────────────────
+const S = {
+  aktiv: 'NC',
+  quadrant: 'Q1',
+  modus: 'RUHE',
+  x: 0.5, y: 0.5, z: 0.5,
+  h: 0.5, a: 0.5,
+  t: 0
+};
 
-<!-- DIAMANT -->
-<div class="block">
-<h2>DIAMANT‑KERN (Diamant.md)</h2>
-<pre>
-◈
-Harmonie: 0.91
-Freude:   0.77
-</pre>
-</div>
+// ─── Quadranten aus Station ─────────────────────────────────
+const Q = {
+  AH: 'Q1', HA: 'Q2', ÄH: 'Q3', HÄ: 'Q4', NC: '—'
+};
 
-<!-- CSV DIAGNOSE -->
-<div class="block">
-<h2>CSV‑DIAGNOSE (SE.html)</h2>
-<pre>
-PUNKT:   H 0.82 | D 0.12 | F 0.44 | G 0.71 | HZ 0.00 | P LOW
-ACHSE:   H 0.76 | D 0.18 | F 0.39 | G 0.63 | HZ 0.00 | P LOW
-FORM:    H 0.69 | D 0.22 | F 0.33 | G 0.58 | HZ 0.01 | P MED
-RAUM:    H 0.61 | D 0.29 | F 0.28 | G 0.52 | HZ 0.02 | P MED
-ZYKLUS:  H 0.55 | D 0.33 | F 0.24 | G 0.49 | HZ 0.03 | P HIGH
-DIAMANT: H 0.91 | D 0.05 | F 0.77 | G 0.88 | HZ 0.00 | P NONE
-</pre>
-</div>
+// ─── Klick-Erkennung (relative Positionen) ─────────────────
+function klickZone(mx, my, cx, cy, r){
+  const dx = mx - cx, dy = my - cy;
+  const d = Math.sqrt(dx*dx + dy*dy);
+  if (d < r * 0.18) return 'NC';
+  if (d < r * 0.55){
+    // Winkel bestimmen
+    const ang = Math.atan2(dy, dx) * 180 / Math.PI;
+    // 0° rechts, 90° unten (canvas)
+    if (ang > -45 && ang <= 45)  return 'HA';   // rechts
+    if (ang > 45  && ang <= 135) return 'ÄH';   // unten
+    if (ang > 135 || ang <= -135)return 'AH';   // links
+    return 'HÄ';                                 // oben
+  }
+  return null;
+}
 
-<!-- SYSTEM FUSION -->
-<div class="block">
-<h2>SYSTEM‑FUSION (ROOT)</h2>
-<pre>
-ATOM = Struktur
-SONNE = Energie
-DIAMANT = Wahrheit
-HYPNOSE = Schatten
-MANA = Licht
+cv.addEventListener('click', (e) => {
+  const r = cv.getBoundingClientRect();
+  const mx = e.clientX - r.left;
+  const my = e.clientY - r.top;
+  const cx = W/2, cy = H/2;
+  const rad = Math.min(W, H) * 0.4;
+  const z = klickZone(mx, my, cx, cy, rad);
+  if (z){
+    S.aktiv = z;
+    S.quadrant = Q[z] || '—';
+    // Werte ändern sich je nach Station
+    const wert = {
+      AH: {x:0.3,y:0.7,z:0.5,h:0.7,a:0.3},
+      HA: {x:0.7,y:0.3,z:0.5,h:0.7,a:0.3},
+      HÄ: {x:0.5,y:0.5,z:0.9,h:0.9,a:0.1},
+      ÄH: {x:0.5,y:0.5,z:0.1,h:0.1,a:0.9},
+      NC: {x:0.5,y:0.5,z:0.5,h:0.5,a:0.5}
+    }[z];
+    S.x = wert.x; S.y = wert.y; S.z = wert.z;
+    S.h = wert.h; S.a = wert.a;
+    S.modus = (z === 'NC') ? 'RUHE' : 'AKTIV';
+  }
+  ui();
+});
 
-ATOM → SONNE → DIAMANT → HYPNOSE → MANA → ATOM
-</pre>
-</div>
+// ─── Buttons ───────────────────────────────────────────────
+document.querySelectorAll('[data-st]').forEach(b => {
+  b.addEventListener('click', () => {
+    S.aktiv = b.dataset.st;
+    S.quadrant = Q[S.aktiv] || '—';
+    const wert = {
+      AH: {x:0.3,y:0.7,z:0.5,h:0.7,a:0.3},
+      HA: {x:0.7,y:0.3,z:0.5,h:0.7,a:0.3},
+      HÄ: {x:0.5,y:0.5,z:0.9,h:0.9,a:0.1},
+      ÄH: {x:0.5,y:0.5,z:0.1,h:0.1,a:0.9},
+      NC: {x:0.5,y:0.5,z:0.5,h:0.5,a:0.5}
+    }[S.aktiv];
+    Object.assign(S, wert);
+    S.modus = (S.aktiv === 'NC') ? 'RUHE' : 'AKTIV';
+    ui();
+  });
+});
 
+// ─── UI ────────────────────────────────────────────────────
+function ui(){
+  document.getElementById('modus').textContent = S.modus;
+  document.getElementById('aktiv').textContent = S.aktiv;
+  document.getElementById('quadrant').textContent = S.quadrant;
+  document.getElementById('ax').style.width = (S.x*100)+'%';
+  document.getElementById('ay').style.width = (S.y*100)+'%';
+  document.getElementById('az').style.width = (S.z*100)+'%';
+  document.getElementById('vh').textContent = S.h.toFixed(2);
+  document.getElementById('va').textContent = S.a.toFixed(2);
+}
+ui();
+
+// ─── Zeichnen ──────────────────────────────────────────────
+function draw(){
+  requestAnimationFrame(draw);
+  S.t += 0.016;
+
+  ctx.clearRect(0, 0, W, H);
+
+  // Atmender Hintergrund
+  const atem = 0.5 + 0.5 * Math.sin(S.t * 0.5);
+  ctx.fillStyle = `rgb(${5+atem*3}, ${7+atem*5}, ${14+atem*8})`;
+  ctx.fillRect(0, 0, W, H);
+
+  const cx = W/2, cy = H/2;
+  const R = Math.min(W, H) * 0.4;
+
+  // ─── Achsen-Linien (HÄ / ÄH / AH / HA) ────────────────
+  ctx.strokeStyle = 'rgba(90,106,128,0.4)';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(cx - R, cy); ctx.lineTo(cx + R, cy);   // AH — HA
+  ctx.moveTo(cx, cy - R); ctx.lineTo(cx, cy + R);   // HÄ — ÄH
+  ctx.stroke();
+
+  // ─── Winkel-Kreis (4D-Raum) ───────────────────────────
+  ctx.strokeStyle = `rgba(255,215,0,${0.15 + S.h*0.2})`;
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.arc(cx, cy, R * 0.72, 0, Math.PI * 2);
+  ctx.stroke();
+
+  // ─── Quadrant-Felder (Q1–Q4) ──────────────────────────
+  const qFarbe = {
+    Q1: 'rgba(255,215,0,0.06)',
+    Q2: 'rgba(167,139,250,0.06)',
+    Q3: 'rgba(77,208,225,0.06)',
+    Q4: 'rgba(245,163,66,0.06)'
+  };
+  // Q1 oben-links, Q2 oben-rechts, Q3 unten-rechts, Q4 unten-links
+  const qpos = [
+    {q:'Q1', x:cx - R*0.5, y:cy - R*0.5},
+    {q:'Q2', x:cx + R*0.5, y:cy - R*0.5},
+    {q:'Q3', x:cx + R*0.5, y:cy + R*0.5},
+    {q:'Q4', x:cx - R*0.5, y:cy + R*0.5}
+  ];
+  qpos.forEach(p => {
+    const aktiv = (S.quadrant === p.q);
+    ctx.fillStyle = aktiv ? qFarbe[p.q].replace('0.06','0.18') : qFarbe[p.q];
+    const s = R * 0.5;
+    ctx.fillRect(p.x - s/2, p.y - s/2, s, s);
+    ctx.strokeStyle = aktiv ? 'rgba(255,215,0,0.5)' : 'rgba(90,106,128,0.15)';
+    ctx.strokeRect(p.x - s/2, p.y - s/2, s, s);
+
+    // Q-Label
+    ctx.fillStyle = aktiv ? '#ffd700' : '#3a4a60';
+    ctx.font = 'bold 10px Consolas';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(p.q, p.x, p.y);
+  });
+
+  // ─── Äußere Stationen ─────────────────────────────────
+  const aussen = [
+    {id:'HÄ', x:cx,        y:cy - R,     farbe:'#ffd700'},
+    {id:'ÄH', x:cx,        y:cy + R,     farbe:'#4dd0e1'},
+    {id:'AH', x:cx - R,    y:cy,         farbe:'#a78bfa'},
+    {id:'HA', x:cx + R,    y:cy,         farbe:'#f5a342'}
+  ];
+
+  aussen.forEach(a => {
+    const aktiv = (S.aktiv === a.id);
+    const r = aktiv ? 22 : 14;
+
+    // Glow
+    const g = ctx.createRadialGradient(a.x, a.y, 0, a.x, a.y, r*2);
+    g.addColorStop(0, aktiv ? a.farbe + 'aa' : 'rgba(90,106,128,0.15)');
+    g.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = g;
+    ctx.beginPath(); ctx.arc(a.x, a.y, r*2, 0, Math.PI*2); ctx.fill();
+
+    // Punkt
+    ctx.fillStyle = aktiv ? a.farbe : '#3a4a60';
+    ctx.beginPath(); ctx.arc(a.x, a.y, r*0.45, 0, Math.PI*2); ctx.fill();
+
+    // Label
+    ctx.fillStyle = aktiv ? a.farbe : '#5a6a80';
+    ctx.font = 'bold 12px Consolas';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    const labelOff = 30;
+    let lx = a.x, ly = a.y;
+    if (a.id === 'HÄ') ly -= labelOff;
+    if (a.id === 'ÄH') ly += labelOff;
+    if (a.id === 'AH') lx -= labelOff;
+    if (a.id === 'HA') lx += labelOff;
+    ctx.fillText(a.id, lx, ly);
+  });
+
+  // ─── Zentrales NC ────────────────────────────────────
+  const ncAktiv = (S.aktiv === 'NC');
+  const ncR = 26 + S.z * 8;
+
+  const ng = ctx.createRadialGradient(cx, cy, 0, cx, cy, ncR*2);
+  ng.addColorStop(0, `rgba(255,215,0,${0.4 + S.z*0.4})`);
+  ng.addColorStop(1, 'rgba(255,215,0,0)');
+  ctx.fillStyle = ng;
+  ctx.beginPath(); ctx.arc(cx, cy, ncR*2, 0, Math.PI*2); ctx.fill();
+
+  ctx.fillStyle = ncAktiv ? '#ffd700' : `rgb(${120+S.z*100},${100+S.z*80},${60})`;
+  ctx.beginPath(); ctx.arc(cx, cy, ncR*0.5, 0, Math.PI*2); ctx.fill();
+
+  // NC-Label
+  ctx.fillStyle = ncAktiv ? '#000' : '#c8d8e8';
+  ctx.font = 'bold 11px Consolas';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('NC', cx, cy);
+
+  // ─── Umlaufende Bewegung (Winkel) ────────────────────
+  const wa = S.t * 0.6;
+  const wr = R * 0.72;
+  const wx = cx + Math.cos(wa) * wr;
+  const wy = cy + Math.sin(wa) * wr;
+  ctx.fillStyle = 'rgba(255,215,0,0.6)';
+  ctx.beginPath(); ctx.arc(wx, wy, 3, 0, Math.PI*2); ctx.fill();
+
+  // ─── Modus-Text oben ─────────────────────────────────
+  ctx.fillStyle = '#ffd700';
+  ctx.font = 'bold 11px Consolas';
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'top';
+  ctx.fillText('◈ NANO-WÜRFEL · ' + S.modus, 16, 14);
+
+  ctx.fillStyle = '#5a6a80';
+  ctx.font = '10px Consolas';
+  ctx.fillText('Station: ' + S.aktiv + '  ·  ' + S.quadrant, 16, 30);
+}
+
+draw();
+
+})();
+</script>
 </body>
 </html>
