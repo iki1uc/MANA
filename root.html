@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NANO · WÜRFEL · CONTROLLER</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:#05070e;color:#c8d8e8;font-family:Consolas,monospace;
+       min-height:100vh;display:grid;grid-template-columns:1fr 260px;
+       gap:10px;padding:10px}
+  #stage{background:#0a0d18;border:1px solid #1a2030;border-radius:10px;
+         position:relative;overflow:hidden;min-height:400px}
+  canvas{display:block;width:100%;height:100%}
+  #panel{background:#0a0d18;border:1px solid #1a2030;border-radius:10px;
+         padding:12px;display:flex;flex-direction:column;gap:8px;
+         font-size:11px;overflow-y:auto}
+  h2{font-size:10px;letter-spacing:2px;color:#5a6a80;margin:4px 0 0;
+     border-bottom:1px solid #1a2030;padding-bottom:4px}
+  .zeile{display:flex;justify-content:space-between;gap:8px;
+         padding:2px 0;font-size:10px}
+  .zeile .k{color:#5a6a80}
+  .zeile .v{color:#ffd700;font-weight:bold}
+  .achse{display:flex;gap:6px;align-items:center;padding:2px 0}
+  .achse .name{width:56px;color:#5a6a80;font-size:9px}
+  .achse .balken{flex:1;height:4px;background:#0f1420;border-radius:2px;
+                 overflow:hidden}
+  .achse .balken div{height:100%;transition:width 0.5s ease}
+  .knoepfe{display:flex;gap:4px;flex-wrap:wrap;margin-top:4px}
+  .knopf{background:#0f1420;border:1px solid #1a2030;color:#8aa8a0;
+         padding:4px 10px;border-radius:100px;font-family:inherit;
+         font-size:10px;cursor:pointer;letter-spacing:1px;transition:0.2s}
+  .knopf:hover{border-color:#ffd700;color:#ffd700}
+  .knopf.aktiv{border-color:#ffd700;color:#ffd700;background:rgba(255,215,0,0.08)}
+  @media (max-width:700px){body{grid-template-columns:1fr}
+                           #panel{max-height:220px}}
+</style>
+</head>
+<body>
+
+<div id="stage"><canvas id="cv"></canvas></div>
+
+<div id="panel">
+  <h2>◈ NANO-WÜRFEL</h2>
+  <div class="zeile"><span class="k">Modus</span><span class="v" id="modus">RUHE</span></div>
+  <div class="zeile"><span class="k">Führer</span><span class="v" id="aktiv">NC</span></div>
+  <div class="zeile"><span class="k">Quadrant</span><span class="v" id="quadrant">—</span></div>
+
+  <h2>◈ ACHSEN</h2>
+  <div class="achse"><span class="name">X·HYPE</span>
+    <div class="balken"><div id="ax" style="width:50%;background:#a78bfa"></div></div></div>
+  <div class="achse"><span class="name">Y·CALC</span>
+    <div class="balken"><div id="ay" style="width:50%;background:#4dd0e1"></div></div></div>
+  <div class="achse"><span class="name">Z·iki2li</span>
+    <div class="balken"><div id="az" style="width:50%;background:#f5a342"></div></div></div>
+
+  <h2>◈ POL</h2>
+  <div class="zeile"><span class="k">HÄ</span><span class="v" id="vh">0.50</span></div>
+  <div class="zeile"><span class="k">ÄH</span><span class="v" id="va">0.50</span></div>
+
+  <h2>◈ FÜHRUNG</h2>
+  <div class="knoepfe">
+    <button class="knopf" data-st="AH">AH</button>
+    <button class="knopf" data-st="HA">HA</button>
+    <button class="knopf" data-st="HÄ">HÄ</button>
+    <button class="knopf" data-st="ÄH">ÄH</button>
+    <button class="knopf aktiv" data-st="NC">NC</button>
+  </div>
+</div>
+
+<script>
+(function(){
+'use strict';
+
+const cv = document.getElementById('cv');
+const ctx = cv.getContext('2d');
+let W, H;
+
+function resize(){
+  const st = document.getElementById('stage');
+  const r = st.getBoundingClientRect();
+  W = cv.width = r.width;
+  H = cv.height = r.height;
+}
+resize();
+window.addEventListener('resize', resize);
+
+// ─── Zustand ────────────────────────────────────────────
+const S = {
+  aktiv: 'NC',
+  quadrant: '—',
+  modus: 'RUHE',
+  x: 0.5, y: 0.5, z: 0.5,
+  h: 0.5, a: 0.5,
+  t: 0
+};
+
+const QMAP = { AH:'Q1', HA:'Q2', ÄH:'Q3', HÄ:'Q4', NC:'—' };
+
+const WERTE = {
+  AH: {x:0.30, y:0.70, z:0.50, h:0.70, a:0.30},
+  HA: {x:0.70, y:0.30, z:0.50, h:0.70, a:0.30},
+  HÄ: {x:0.50, y:0.50, z:0.90, h:0.90, a:0.10},
+  ÄH: {x:0.50, y:0.50, z:0.10, h:0.10, a:0.90},
+  NC: {x:0.50, y:0.50, z:0.50, h:0.50, a:0.50}
+};
+
+function fuehren(id){
+  S.aktiv = id;
+  S.quadrant = QMAP[id] || '—';
+  Object.assign(S, WERTE[id]);
+  S.modus = (id === 'NC') ? 'RUHE' : 'FÜHRT';
+  ui();
+  document.querySelectorAll('.knopf').forEach(b => {
+    b.classList.toggle('aktiv', b.dataset.st === id);
+  });
+}
+
+// ─── Klick auf Canvas ───────────────────────────────────
+cv.addEventListener('click', (e) => {
+  const r = cv.getBoundingClientRect();
+  const mx = e.clientX - r.left;
+  const my = e.clientY - r.top;
+  const cx = W/2, cy = H/2;
+  const R  = Math.min(W, H) * 0.4;
+  const dx = mx - cx, dy = my - cy;
+  const d  = Math.hypot(dx, dy);
+
+  if (d < R * 0.20) { fuehren('NC'); return; }
+
+  if (d < R * 0.65){
+    const ang = Math.atan2(dy, dx) * 180 / Math.PI;
+    if (ang > -45 && ang <= 45)   return fuehren('HA');
+    if (ang > 45  && ang <= 135)  return fuehren('ÄH');
+    if (ang > 135 || ang <= -135) return fuehren('AH');
+    return fuehren('HÄ');
+  }
+});
+
+// ─── Buttons ────────────────────────────────────────────
+document.querySelectorAll('[data-st]').forEach(b => {
+  b.addEventListener('click', () => fuehren(b.dataset.st));
+});
+
+// ─── UI ─────────────────────────────────────────────────
+function ui(){
+  document.getElementById('modus').textContent    = S.modus;
+  document.getElementById('aktiv').textContent    = S.aktiv;
+  document.getElementById('quadrant').textContent = S.quadrant;
+  document.getElementById('ax').style.width = (S.x*100)+'%';
+  document.getElementById('ay').style.width = (S.y*100)+'%';
+  document.getElementById('az').style.width = (S.z*100)+'%';
+  document.getElementById('vh').textContent = S.h.toFixed(2);
+  document.getElementById('va').textContent = S.a.toFixed(2);
+}
+ui();
+
+// ─── Zeichnen ───────────────────────────────────────────
+function draw(){
+  requestAnimationFrame(draw);
+  S.t += 0.016;
+
+  // Atmender Hintergrund
+  const atem = 0.5 + 0.5 * Math.sin(S.t * 0.5);
+  ctx.fillStyle = `rgb(${5+atem*3},${7+atem*5},${14+atem*8})`;
+  ctx.fillRect(0, 0, W, H);
+
+  const cx = W/2, cy = H/2;
+  const R  = Math.min(W, H) * 0.4;
+
+  // ─── Achsen ─────────────────────────────────────────
+  ctx.strokeStyle = 'rgba(90,106,128,0.35)';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(cx - R, cy); ctx.lineTo(cx + R, cy);
+  ctx.moveTo(cx, cy - R); ctx.lineTo(cx, cy + R);
+  ctx.stroke();
+
+  // ─── Winkel-Kreis (4D) ─────────────────────────────
+  ctx.strokeStyle = `rgba(255,215,0,${0.10 + S.h*0.20})`;
+  ctx.beginPath();
+  ctx.arc(cx, cy, R * 0.72, 0, Math.PI * 2);
+  ctx.stroke();
+
+  // ─── Quadranten ────────────────────────────────────
+  const qpos = [
+    {q:'Q1', x:cx - R*0.5, y:cy - R*0.5, c:'255,215,0'},
+    {q:'Q2', x:cx + R*0.5, y:cy - R*0.5, c:'167,139,250'},
+    {q:'Q3', x:cx + R*0.5, y:cy + R*0.5, c:'77,208,225'},
+    {q:'Q4', x:cx - R*0.5, y:cy + R*0.5, c:'245,163,66'}
+  ];
+  const s = R * 0.5;
+  qpos.forEach(p => {
+    const akt = (S.quadrant === p.q);
+    ctx.fillStyle = `rgba(${p.c},${akt ? 0.18 : 0.05})`;
+    ctx.fillRect(p.x - s/2, p.y - s/2, s, s);
+    ctx.strokeStyle = akt
+      ? `rgba(${p.c},0.7)`
+      : 'rgba(90,106,128,0.12)';
+    ctx.strokeRect(p.x - s/2, p.y - s/2, s, s);
+
+    ctx.fillStyle = akt ? `rgb(${p.c})` : '#3a4a60';
+    ctx.font = 'bold 10px Consolas';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(p.q, p.x, p.y);
+  });
+
+  // ─── Fluss-Punkt entlang Achse ─────────────────────
+  const w = S.t * 0.6;
+  const wr = R * 0.9;
+  // Fluss wandert je nach Führer auf der passenden Achse
+  let fx, fy, fc;
+  if (S.aktiv === 'HÄ')      { fx = cx;                fy = cy - Math.abs(Math.sin(w)) * wr; fc='255,215,0'; }
+  else if (S.aktiv === 'ÄH') { fx = cx;                fy = cy + Math.abs(Math.sin(w)) * wr; fc='77,208,225'; }
+  else if (S.aktiv === 'AH') { fx = cx - Math.abs(Math.sin(w)) * wr; fy = cy; fc='167,139,250'; }
+  else if (S.aktiv === 'HA') { fx = cx + Math.abs(Math.sin(w)) * wr; fy = cy; fc='245,163,66'; }
+  else                        { fx = cx + Math.cos(w)*R*0.72; fy = cy + Math.sin(w)*R*0.72; fc='255,215,0'; }
+
+  ctx.fillStyle = `rgba(${fc},0.85)`;
+  ctx.shadowColor = `rgb(${fc})`;
+  ctx.shadowBlur = 12;
+  ctx.beginPath(); ctx.arc(fx, fy, 4, 0, Math.PI*2); ctx.fill();
+  ctx.shadowBlur = 0;
+
+  // ─── Äußere Pole ────────────────────────────────────
+  const aussen = [
+    {id:'HÄ', x:cx,     y:cy - R, c:'#ffd700', lx:0, ly:-30},
+    {id:'ÄH', x:cx,     y:cy + R, c:'#4dd0e1', lx:0, ly:30},
+    {id:'AH', x:cx - R, y:cy,     c:'#a78bfa', lx:-32, ly:0},
+    {id:'HA', x:cx + R, y:cy,     c:'#f5a342', lx:32, ly:0}
+  ];
+
+  aussen.forEach(a => {
+    const akt = (S.aktiv === a.id);
+    const r = akt ? 14 : 9;
+
+    // Glow
+    if (akt){
+      const g = ctx.createRadialGradient(a.x, a.y, 0, a.x, a.y, r*3);
+      g.addColorStop(0, a.c + 'aa');
+      g.addColorStop(1, 'rgba(0,0,0,0)');
+      ctx.fillStyle = g;
+      ctx.beginPath(); ctx.arc(a.x, a.y, r*3, 0, Math.PI*2); ctx.fill();
+    }
+
+    // Kern
+    ctx.fillStyle = akt ? a.c : '#3a4a60';
+    ctx.beginPath(); ctx.arc(a.x, a.y, r*0.5, 0, Math.PI*2); ctx.fill();
+
+    // Ring
+    ctx.strokeStyle = akt ? a.c : 'rgba(90,106,128,0.4)';
+    ctx.lineWidth = akt ? 2 : 1;
+    ctx.beginPath(); ctx.arc(a.x, a.y, r, 0, Math.PI*2); ctx.stroke();
+
+    // Label
+    ctx.fillStyle = akt ? a.c : '#5a6a80';
+    ctx.font = 'bold 11px Consolas';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(a.id, a.x + a.lx, a.y + a.ly);
+  });
+
+  // ─── NC · Mitte ────────────────────────────────────
+  const ncAkt = (S.aktiv === 'NC');
+  const ncR = 18 + S.z * 10;
+
+  const ng = ctx.createRadialGradient(cx, cy, 0, cx, cy, ncR*2.5);
+  ng.addColorStop(0, `rgba(255,215,0,${0.35 + S.z*0.35})`);
+  ng.addColorStop(1, 'rgba(255,215,0,0)');
+  ctx.fillStyle = ng;
+  ctx.beginPath(); ctx.arc(cx, cy, ncR*2.5, 0, Math.PI*2); ctx.fill();
+
+  ctx.fillStyle = ncAkt ? '#ffd700' : '#4a3a10';
+  ctx.beginPath(); ctx.arc(cx, cy, ncR*0.55, 0, Math.PI*2); ctx.fill();
+
+  ctx.fillStyle = ncAkt ? '#000' : '#c8d8e8';
+  ctx.font = 'bold 10px Consolas';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('NC', cx, cy);
+
+  // ─── Kopfzeile ─────────────────────────────────────
+  ctx.fillStyle = '#ffd700';
+  ctx.font = 'bold 11px Consolas';
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'top';
+  ctx.fillText('◈ NANO-WÜRFEL · ' + S.modus, 16, 14);
+
+  ctx.fillStyle = '#5a6a80';
+  ctx.font = '10px Consolas';
+  ctx.fillText('Führung: ' + S.aktiv + ' · ' + S.quadrant, 16, 30);
+}
+
+draw();
+})();
+</script>
+</body>
+</html>
